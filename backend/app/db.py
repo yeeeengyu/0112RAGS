@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
+from bson import ObjectId
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from dotenv import load_dotenv
@@ -39,6 +40,38 @@ def store_rag_document(collection: Collection, document: dict[str, Any]) -> None
     """Insert a new RAG knowledge document into MongoDB."""
     collection.insert_one(document)
 
+
+def list_rag_documents(collection: Collection, limit: int = 50) -> list[dict[str, Any]]:
+    """Return recent RAG knowledge documents for display in the UI."""
+    cursor = (
+        collection.find(
+            {"type": "rag_document"},
+            {"text": 1, "created_at": 1},
+        )
+        .sort("created_at", -1)
+        .limit(limit)
+    )
+    results = []
+    for doc in cursor:
+        results.append(
+            {
+                "id": str(doc.get("_id")),
+                "text": doc.get("text", ""),
+                "created_at": doc.get("created_at"),
+            }
+        )
+    return results
+
+
+def delete_rag_document(collection: Collection, document_id: str) -> bool:
+    """Delete a single RAG knowledge document by its id."""
+    try:
+        object_id = ObjectId(document_id)
+    except Exception:
+        return False
+
+    result = collection.delete_one({"_id": object_id, "type": "rag_document"})
+    return result.deleted_count > 0
 
 def build_rag_context(
     collection: Collection,

@@ -1,4 +1,4 @@
-const { useState } = React;
+const { useEffect, useState } = React;
 
 const API_BASE_URL = "http://localhost:8000";
 
@@ -9,6 +9,28 @@ const App = () => {
   const [storeError, setStoreError] = useState(false);
   const [answer, setAnswer] = useState("");
   const [retrievedDocs, setRetrievedDocs] = useState([]);
+  const [ragDocs, setRagDocs] = useState([]);
+  const [ragLoading, setRagLoading] = useState(false);
+
+  const fetchRagDocs = async () => {
+    setRagLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/rag/list`);
+      if (!response.ok) {
+        throw new Error("RAG 목록을 불러오지 못했습니다.");
+      }
+      const data = await response.json();
+      setRagDocs(data.documents || []);
+    } catch (error) {
+      setRagDocs([]);
+    } finally {
+      setRagLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRagDocs();
+  }, []);
 
   const handleStore = async () => {
     const trimmed = ragText.trim();
@@ -35,6 +57,7 @@ const App = () => {
 
       setStoreStatus("지식이 저장되었습니다.");
       setRagText("");
+      fetchRagDocs();
     } catch (error) {
       setStoreStatus(`오류: ${error.message}`);
       setStoreError(true);
@@ -68,6 +91,21 @@ const App = () => {
       setRetrievedDocs(data.retrieved_documents || []);
     } catch (error) {
       setAnswer(`오류: ${error.message}`);
+    }
+  };
+
+  const handleDelete = async (documentId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/rag/${documentId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("삭제 실패");
+      }
+      fetchRagDocs();
+    } catch (error) {
+      setStoreStatus(`삭제 오류: ${error.message}`);
+      setStoreError(true);
     }
   };
 
@@ -121,6 +159,33 @@ const App = () => {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="card">
+        <h2>저장된 RAG 지식</h2>
+        {ragLoading ? (
+          <p>불러오는 중...</p>
+        ) : ragDocs.length === 0 ? (
+          <p>저장된 문서가 없습니다.</p>
+        ) : (
+          <ul className="retrieved">
+            {ragDocs.map((doc) => (
+              <li key={doc.id} className="rag-item">
+                <span>
+                  {doc.text}
+                  {doc.created_at ? ` (${new Date(doc.created_at).toLocaleString()})` : ""}
+                </span>
+                <button
+                  type="button"
+                  className="danger"
+                  onClick={() => handleDelete(doc.id)}
+                >
+                  삭제
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );

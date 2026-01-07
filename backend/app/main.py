@@ -12,7 +12,9 @@ from pydantic import BaseModel, Field
 
 from .db import (
     build_rag_context,
+    delete_rag_document,
     get_collection,
+    list_rag_documents,
     log_chat,
     store_rag_document,
 )
@@ -43,6 +45,16 @@ class ChatQueryResponse(BaseModel):
     retrieved_documents: list[dict[str, Any]]
 
 
+class RagDocumentResponse(BaseModel):
+    id: str
+    text: str
+    created_at: str | None
+
+
+class RagListResponse(BaseModel):
+    documents: list[RagDocumentResponse]
+
+
 @app.get("/")
 def health() -> dict[str, str]:
     return {"status": "ok"}
@@ -67,6 +79,7 @@ def store_rag_knowledge(payload: RagStoreRequest) -> dict[str, str]:
 
     vector = embedding_response.data[0].embedding
     document = {
+        "type": "rag_document",
         "text": payload.text,
         "embedding": vector,
         "created_at": datetime.now(timezone.utc),
@@ -76,6 +89,32 @@ def store_rag_knowledge(payload: RagStoreRequest) -> dict[str, str]:
     store_rag_document(collection, document)
 
     return {"message": "Knowledge stored successfully."}
+
+
+@app.get("/rag/list", response_model=RagListResponse)
+def list_rag_knowledge() -> RagListResponse:
+    """Return recent RAG knowledge documents for the frontend list."""
+    collection = get_collection()
+    documents = list_rag_documents(collection, limit=50)
+    formatted = [
+        RagDocumentResponse(
+            id=doc["id"],
+            text=doc["text"],
+            created_at=doc["created_at"].isoformat() if doc["created_at"] else None,
+        )
+        for doc in documents
+    ]
+    return RagListResponse(documents=formatted)
+
+
+@app.delete("/rag/{document_id}")
+def delete_rag_knowledge(document_id: str) -> dict[str, str]:
+    """Delete a single RAG knowledge document by id."""
+    collection = get_collection()
+    deleted = delete_rag_document(collection, document_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return {"message": "Document deleted."}
 
 
 @app.post("/chat/query", response_model=ChatQueryResponse)

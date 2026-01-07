@@ -55,6 +55,14 @@ button:hover {
   background: #1d4ed8;
 }
 
+.danger {
+  background: #dc2626;
+}
+
+.danger:hover {
+  background: #b91c1c;
+}
+
 .status {
   margin-top: 10px;
   font-size: 14px;
@@ -75,4 +83,15 @@ button:hover {
 .retrieved li {
   margin-bottom: 6px;
   line-height: 1.4;
+}
+
+.rag-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rag-item span {
+  flex: 1;
 }
