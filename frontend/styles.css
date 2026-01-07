@@ -41,12 +41,6 @@ textarea {
   font-size: 14px;
 }
 
-.button-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
 button {
   padding: 10px 18px;
   border: none;

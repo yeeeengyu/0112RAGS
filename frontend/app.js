@@ -65,37 +65,6 @@ const App = () => {
     }
   };
 
-  const handleAsk = async () => {
-    const trimmed = question.trim();
-    if (!trimmed) {
-      setAnswer("질문을 입력해주세요.");
-      return;
-    }
-
-    setAnswer("답변 생성 중...");
-    setRetrievedDocs([]);
-    setRouteDecision("RAG (고정)");
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/chat/query`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: trimmed }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || "질문 실패");
-      }
-
-      const data = await response.json();
-      setAnswer(data.answer);
-      setRetrievedDocs(data.retrieved_documents || []);
-    } catch (error) {
-      setAnswer(`오류: ${error.message}`);
-    }
-  };
-
   const handleRouteAsk = async () => {
     const trimmed = question.trim();
     if (!trimmed) {
@@ -178,14 +147,9 @@ const App = () => {
           placeholder="질문을 입력하세요."
           rows="3"
         ></textarea>
-        <div className="button-row">
-          <button type="button" onClick={handleAsk}>
-            질문하기 (RAG)
-          </button>
-          <button type="button" onClick={handleRouteAsk}>
-            라우팅 질문하기
-          </button>
-        </div>
+        <button type="button" onClick={handleRouteAsk}>
+          질문하기
+        </button>
       </section>
 
       <section className="card">
