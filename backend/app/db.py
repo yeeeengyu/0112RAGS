@@ -46,7 +46,7 @@ def list_rag_documents(collection: Collection, limit: int = 50) -> list[dict[str
     cursor = (
         collection.find(
             {"type": "rag_document"},
-            {"text": 1, "created_at": 1},
+            {"text": 1, "entity": 1, "slot": 1, "knowledge_type": 1, "created_at": 1},
         )
         .sort("created_at", -1)
         .limit(limit)
@@ -57,6 +57,9 @@ def list_rag_documents(collection: Collection, limit: int = 50) -> list[dict[str
             {
                 "id": str(doc.get("_id")),
                 "text": doc.get("text", ""),
+                "entity": doc.get("entity"),
+                "slot": doc.get("slot"),
+                "knowledge_type": doc.get("knowledge_type"),
                 "created_at": doc.get("created_at"),
             }
         )

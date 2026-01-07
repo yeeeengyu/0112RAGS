@@ -41,6 +41,32 @@ textarea {
   font-size: 14px;
 }
 
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.meta-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.meta-field label {
+  font-size: 13px;
+  color: #374151;
+}
+
+.meta-field input,
+.meta-field select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
 button {
   padding: 10px 18px;
   border: none;
@@ -101,4 +127,10 @@ button:hover {
 
 .rag-item span {
   flex: 1;
+}
+
+.meta-inline {
+  font-style: normal;
+  color: #6b7280;
+  font-size: 13px;
 }

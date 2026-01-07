@@ -4,6 +4,9 @@ const API_BASE_URL = "http://localhost:8000";
 
 const App = () => {
   const [ragText, setRagText] = useState("");
+  const [ragEntity, setRagEntity] = useState("");
+  const [ragSlot, setRagSlot] = useState("");
+  const [ragType, setRagType] = useState("fact");
   const [question, setQuestion] = useState("");
   const [storeStatus, setStoreStatus] = useState("");
   const [storeError, setStoreError] = useState(false);
@@ -48,7 +51,12 @@ const App = () => {
       const response = await fetch(`${API_BASE_URL}/rag/store`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: trimmed }),
+        body: JSON.stringify({
+          text: trimmed,
+          entity: ragEntity.trim() || null,
+          slot: ragSlot.trim() || null,
+          type: ragType,
+        }),
       });
 
       if (!response.ok) {
@@ -58,6 +66,9 @@ const App = () => {
 
       setStoreStatus("지식이 저장되었습니다.");
       setRagText("");
+      setRagEntity("");
+      setRagSlot("");
+      setRagType("fact");
       fetchRagDocs();
     } catch (error) {
       setStoreStatus(`오류: ${error.message}`);
@@ -131,6 +142,40 @@ const App = () => {
           placeholder="RAG 지식으로 저장할 문장을 입력하세요."
           rows="4"
         ></textarea>
+        <div className="meta-grid">
+          <div className="meta-field">
+            <label htmlFor="rag-entity">entity (대상)</label>
+            <input
+              id="rag-entity"
+              type="text"
+              value={ragEntity}
+              onChange={(event) => setRagEntity(event.target.value)}
+              placeholder="예: 제품명, 인물명"
+            />
+          </div>
+          <div className="meta-field">
+            <label htmlFor="rag-slot">slot (정보 종류)</label>
+            <input
+              id="rag-slot"
+              type="text"
+              value={ragSlot}
+              onChange={(event) => setRagSlot(event.target.value)}
+              placeholder="예: 가격, 출시일"
+            />
+          </div>
+          <div className="meta-field">
+            <label htmlFor="rag-type">type</label>
+            <select
+              id="rag-type"
+              value={ragType}
+              onChange={(event) => setRagType(event.target.value)}
+            >
+              <option value="fact">fact</option>
+              <option value="history">history</option>
+              <option value="summary">summary</option>
+            </select>
+          </div>
+        </div>
         <button type="button" onClick={handleStore}>
           지식 저장
         </button>
@@ -178,6 +223,16 @@ const App = () => {
               <li key={doc.id} className="rag-item">
                 <span>
                   {doc.text}
+                  {(doc.entity || doc.slot || doc.type) && (
+                    <>
+                      {" "}
+                      <em className="meta-inline">
+                        {doc.entity ? `entity: ${doc.entity}` : ""}
+                        {doc.slot ? ` · slot: ${doc.slot}` : ""}
+                        {doc.type ? ` · type: ${doc.type}` : ""}
+                      </em>
+                    </>
+                  )}
                   {doc.created_at ? ` (${new Date(doc.created_at).toLocaleString()})` : ""}
                 </span>
                 <button

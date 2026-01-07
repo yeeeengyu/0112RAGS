@@ -34,6 +34,9 @@ app.add_middleware(
 
 class RagStoreRequest(BaseModel):
     text: str = Field(..., min_length=1, description="Knowledge text to store for RAG")
+    entity: str | None = Field(None, description="Target entity for the knowledge")
+    slot: str | None = Field(None, description="Information type / slot name")
+    type: str | None = Field(None, description="Knowledge type: fact / history / summary")
 
 
 class ChatQueryRequest(BaseModel):
@@ -64,6 +67,9 @@ class ChatRouteResponse(BaseModel):
 class RagDocumentResponse(BaseModel):
     id: str
     text: str
+    entity: str | None
+    slot: str | None
+    type: str | None
     created_at: str | None
 
 
@@ -97,6 +103,9 @@ def store_rag_knowledge(payload: RagStoreRequest) -> dict[str, str]:
     document = {
         "type": "rag_document",
         "text": payload.text,
+        "entity": payload.entity,
+        "slot": payload.slot,
+        "knowledge_type": payload.type,
         "embedding": vector,
         "created_at": datetime.now(timezone.utc),
     }
@@ -116,6 +125,9 @@ def list_rag_knowledge() -> RagListResponse:
         RagDocumentResponse(
             id=doc["id"],
             text=doc["text"],
+            entity=doc.get("entity"),
+            slot=doc.get("slot"),
+            type=doc.get("knowledge_type"),
             created_at=doc["created_at"].isoformat() if doc["created_at"] else None,
         )
         for doc in documents
