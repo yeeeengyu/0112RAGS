@@ -57,7 +57,7 @@ class ChatQueryResponse(BaseModel):
 class ChatRouteRequest(BaseModel):
     question: str = Field(..., min_length=1, description="User question")
     threshold: float = Field(
-        0.60,
+        0.65,
         ge=0.0,
         le=1.0,
         description="Score threshold to decide whether to use RAG.",
@@ -195,7 +195,6 @@ def chat_query(payload: ChatQueryRequest) -> ChatQueryResponse:
         f"{payload.question}\n\n"
         "Answer in Korean to match the learning UI."
     )
-
     try:
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -264,19 +263,21 @@ def chat_route(payload: ChatRouteRequest) -> ChatRouteResponse:
             f"{payload.question}\n\n"
             "Answer in Korean to match the learning UI."
         )
+    if route == "rag":
+        try:
+            completion = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail=f"Chat completion failed: {exc}") from exc
 
-    try:
-        completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-        )
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Chat completion failed: {exc}") from exc
-
-    answer = completion.choices[0].message.content
+        answer = completion.choices[0].message.content
+    elif route == "llm": 
+        answer = "사용자님이 주신 요청에 부합한 지식이 없는 것 같습니다. 죄송합니당"
 
     log_chat(
         collection=collection,
@@ -291,7 +292,6 @@ def chat_route(payload: ChatRouteRequest) -> ChatRouteResponse:
         retrieved_documents=retrieved if use_rag else [],
         route=route,
     )
-
 
 from typing import Any
 import re
