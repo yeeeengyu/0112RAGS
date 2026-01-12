@@ -125,3 +125,14 @@ def log_chat(
     if route:
         log_entry["route"] = route
     collection.insert_one(log_entry)
+
+from pymongo.collection import Collection
+from typing import Any
+
+def store_rag_documents(collection: Collection, documents: list[dict[str, Any]]) -> int:
+    """Insert many RAG knowledge documents into MongoDB."""
+    if not documents:
+        return 0
+    result = collection.insert_many(documents)
+    return len(result.inserted_ids)
+
