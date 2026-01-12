@@ -56,13 +56,6 @@ class ChatQueryResponse(BaseModel):
 
 class ChatRouteRequest(BaseModel):
     question: str = Field(..., min_length=1, description="User question")
-    threshold: float = Field(
-        0.65,
-        ge=0.0,
-        le=1.0,
-        description="Score threshold to decide whether to use RAG.",
-    )
-
 
 class ChatRouteResponse(BaseModel):
     answer: str
@@ -156,7 +149,7 @@ def delete_rag_knowledge(document_id: str) -> dict[str, str]:
     return {"message": "Document deleted."}
 
 
-@app.post("/chat/query", response_model=ChatQueryResponse)
+@app.post("/chat/route", response_model=ChatQueryResponse)
 def chat_query(payload: ChatQueryRequest) -> ChatQueryResponse:
     """
     RAG-enabled Q&A endpoint.
@@ -218,7 +211,7 @@ def chat_query(payload: ChatQueryRequest) -> ChatQueryResponse:
     return ChatQueryResponse(answer=answer, retrieved_documents=retrieved)
 
 
-@app.post("/chat/route", response_model=ChatRouteResponse)
+@app.post("/chat/query", response_model=ChatRouteResponse)
 def chat_route(payload: ChatRouteRequest) -> ChatRouteResponse:
     """
     Simple query routing endpoint.
@@ -239,8 +232,9 @@ def chat_route(payload: ChatRouteRequest) -> ChatRouteResponse:
     collection = get_collection()
     retrieved = build_rag_context(collection, question_vector, limit=3)
 
+    THRESHOLD = 0.67
     top_score = retrieved[0]["score"] if retrieved else 0.0
-    use_rag = top_score >= payload.threshold
+    use_rag = top_score >= THRESHOLD
     route = "rag" if use_rag else "llm"
 
     system_prompt = (
