@@ -150,7 +150,7 @@ const App = () => {
               type="text"
               value={ragEntity}
               onChange={(event) => setRagEntity(event.target.value)}
-              placeholder="예: 제품명, 인물명"
+              placeholder="예: 인물명, 문서 제목"
             />
           </div>
           <div className="meta-field">
@@ -160,7 +160,7 @@ const App = () => {
               type="text"
               value={ragSlot}
               onChange={(event) => setRagSlot(event.target.value)}
-              placeholder="예: 가격, 출시일"
+              placeholder="예: user_profile, paper_name"
             />
           </div>
           <div className="meta-field">

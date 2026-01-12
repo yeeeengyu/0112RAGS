@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
-from .db import (
+from db import (
     build_rag_context,
     delete_rag_document,
     get_collection,
@@ -51,7 +51,7 @@ class ChatQueryResponse(BaseModel):
 class ChatRouteRequest(BaseModel):
     question: str = Field(..., min_length=1, description="User question")
     threshold: float = Field(
-        0.75,
+        0.60,
         ge=0.0,
         le=1.0,
         description="Score threshold to decide whether to use RAG.",
